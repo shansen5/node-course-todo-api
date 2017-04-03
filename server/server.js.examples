@@ -1,0 +1,45 @@
+var [mongoose} = require('./db/mongoose' );
+
+/*
+var newUsers = [ 
+  new User( {
+    name: 'Steve Hansen  ',
+    email: 'a@b.c'
+  }),
+  new User( {
+    name: ' Karen Sheldon  ',
+    email: 'k@b.c'
+  }),
+  new User( {
+    name: 'Tyler Hansen  ',
+    email: ' t'
+  })
+];
+
+newUsers.forEach( (user) => {
+  user.save().then( (doc) => {
+    console.log( 'Saved user ', JSON.stringify( doc, undefined, true ));
+  }, (e) => {
+    console.log( 'Unable to save user', JSON.stringify( doc, undefined, true ))
+  });
+});
+
+var newTodos = [ 
+  new Todo( {
+    text: 'Pick up cushios from retreat',
+    completed: false
+  }),
+  new Todo( {
+    text: 'Go to Grassroots Action meeting',
+    completed: false
+  })
+];
+
+newTodos.forEach( (todo) => {
+  todo.save().then( (doc) => {
+    console.log( 'Saved todo ', doc );
+  }, (e) => {
+    console.log( 'Unable to save todo' )
+  });
+});
+*/
