@@ -109,14 +109,23 @@ describe( 'GET /todos/:id', () => {
 
 describe( 'DELETE /todos/:id', () => {
     it( 'should delete and return the correct todo', (done) => {
+        var todoId = todos[0]._id.toHexString();
         request( app )
-        .delete( `/todos/${todos[0]._id.toHexString()}` )
+        .delete( `/todos/${todoId}` )
         .expect( ( response ) => {
             console.log( 'First todo id:', response.body._id );
-            expect( response.body.text ).toBe( todos[0].text );
+            expect( response.body.todo._id ).toBe( todoId );
         })
         .expect( 200 )
-        .end( done );
+        .end( (err, res) => {
+            if ( err ) {
+                return done( err );
+            }
+            Todo.findById( todoId ).then( (todos) => {
+                expect( todos ).toNotExist();
+                done();
+            }).catch( (e) => done( e ));
+        } );
     });
 
     it( 'should return 404 if todo not found', (done) => {
