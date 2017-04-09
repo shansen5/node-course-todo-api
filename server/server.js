@@ -46,6 +46,21 @@ app.get( '/todos/:id', (request, response) => {
   }, (e) => response.status( 404 ).send());
 });
 
+// DELETE /todos/123432
+app.delete( '/todos/:id', (request, response) => {
+  var todoId = request.params.id;
+  if( !ObjectID.isValid( todoId )) {
+    console.log( 'Todo is not valid' );
+    response.status( 404 ).send();
+  }
+  Todo.findByIdAndRemove( todoId ).then( (todo) => {
+    if ( !todo ) {
+      return response.status( 404 ).send();
+    }
+    response.send( todo );
+  }).catch ((e) => response.status( 404 ).send());
+});
+
 app.listen( port, () => {
   console.log( `Started on port ${port}` );
 });
