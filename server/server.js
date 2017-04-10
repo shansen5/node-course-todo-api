@@ -1,12 +1,13 @@
-var express = require( 'express' );
-var bodyParser = require( 'body-parser' );
+const _ = require( 'lodash' );
+const express = require( 'express' );
+const bodyParser = require( 'body-parser' );
 const {ObjectID} = require( 'mongodb' );
 
-var {mongoose} = require('./db/mongoose' );
-var {Todo} = require( './models/todo' );
-var {User} = require( './models/user' );
+const {mongoose} = require('./db/mongoose' );
+const {Todo} = require( './models/todo' );
+const {User} = require( './models/user' );
 
-var app = express();
+const app = express();
 const port = process.env.PORT || 3000;
 
 app.use( bodyParser.json());
@@ -63,6 +64,32 @@ app.delete( '/todos/:id', (request, response) => {
 
 app.listen( port, () => {
   console.log( `Started on port ${port}` );
+});
+
+// PATCH /todos/:id
+app.patch( '/todos/:id', (request, response) => {
+  console.log( 'Got request to patch');
+  var todoId = request.params.id;
+  if( !ObjectID.isValid( todoId )) {
+    console.log( 'Todo is not valid' );
+    response.status( 404 ).send();
+  }
+  var body = _.pick( request.body, ['text', 'completed'] );
+  if ( _.isBoolean( body.completed ) && body.completed ) {
+    body.completedAt = new Date().getTime();
+  } else {
+    body.completed = false;
+    body.completedAt = null;
+  }
+
+  Todo.findByIdAndUpdate( todoId, 
+    { $set: body }, { new: true }).then( (todo) => {
+    if( !todo ) {
+      console.log( "Cannot find that todo", todoId );
+      return response.status( 404 ).send();
+    }
+    response.send( {todo} );
+  }).catch( (e) => response.status( 400 ).send());
 });
 
 module.exports = {app};
