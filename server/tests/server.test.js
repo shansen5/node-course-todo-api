@@ -10,7 +10,9 @@ const todos = [{
     text: 'First test todo'
 }, {
     _id: new ObjectID(),
-    text: 'Second test todo'
+    text: 'Second test todo',
+    completed: true,
+    completedAt: 123343445234
 }, {
     _id: new ObjectID(),
     text: 'Third todo with specific id'
@@ -105,6 +107,40 @@ describe( 'GET /todos/:id', () => {
         .end( done );
 
     });
+});
+
+describe( 'PATCH /todos/:id', () => {
+    it( 'should change the todo to completed', (done) => {
+        var todoId = todos[0]._id.toHexString();
+        request( app )
+        .patch( `/todos/${todoId}` )
+        .send( { completed: true })
+        .expect( ( response ) => {
+            console.log( 'First todo id:', response.body._id );
+            expect( response.body.todo.completed ).toBe( true );
+            expect( response.body.todo.completedAt ).toBeA( 'number' );
+        })
+        .expect( 200 )
+        .end( done );
+ 
+    });
+    it( 'should change the todo to be not completed', (done) => {
+        var todoId = todos[1]._id.toHexString();
+        var newText = 'Modified by server.test.js testing.';
+        request( app )
+        .patch( `/todos/${todoId}` )
+        .send( { text: newText, completed: false })
+        .expect( ( response ) => {
+            console.log( 'Second todo id:', response.body._id );
+            expect( response.body.todo.completed ).toBe( false );
+            expect( response.body.todo.completedAt ).toBe( null );
+            expect( response.body.todo.text ).toBe( newText );
+       })
+        .expect( 200 )
+        .end( done );
+ 
+    });
+    
 });
 
 describe( 'DELETE /todos/:id', () => {
