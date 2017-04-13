@@ -1,22 +1,9 @@
-
-
-
-var env = process.env.NODE_ENV || 'development';
-console.log( 'env ****', env );
-
-if ( env === 'development' ) {
-  process.env.PORT = 3000;
-  process.env.MONGODB_URI = 'mongodb://localhost:27017/TodoApp';
-} else if ( env === 'test' ) {
-  process.env.PORT = 3000;
-  process.env.MONGODB_URI = 'mongodb://localhost:27017/TodoAppTest';
-}
-
 const _ = require( 'lodash' );
 const express = require( 'express' );
 const bodyParser = require( 'body-parser' );
 const {ObjectID} = require( 'mongodb' );
 
+const {config} = require( './config/config.js')
 const {mongoose} = require('./db/mongoose' );
 const {Todo} = require( './models/todo' );
 const {User} = require( './models/user' );
@@ -26,6 +13,21 @@ const port = process.env.PORT;
 
 app.use( bodyParser.json());
 
+// POST /users
+app.post( '/users', (request, response) => {
+  var body = _.pick( request.body, ['name', 'email', 'password'] );
+  var user = new User( body );
+  user.save().then( () => {
+    return user.generateAuthToken();
+    // response.send( user );
+  }).then( (token) => {
+    response.header( 'x-auth', token ).send( user );  
+  }).catch( (e) => {
+    response.status( 400 ).send( e );
+  });
+});
+
+// POST /todos
 app.post( '/todos', (request, response) => {
   var todo = new Todo({
     text: request.body.text,
@@ -39,6 +41,7 @@ app.post( '/todos', (request, response) => {
   });
 });
 
+// GET /todos
 app.get( '/todos', (request, response) => {
   Todo.find().then( (todos) => {
     response.send( {todos} );
@@ -47,7 +50,7 @@ app.get( '/todos', (request, response) => {
   });
 });
 
-// GET /todos/123423
+// GET /todos/:id
 app.get( '/todos/:id', (request, response) => {
   var todoId = request.params.id;
   if ( !ObjectID.isValid( todoId ) ) {
@@ -61,7 +64,7 @@ app.get( '/todos/:id', (request, response) => {
   }, (e) => response.status( 404 ).send());
 });
 
-// DELETE /todos/123432
+// DELETE /todos/:id
 app.delete( '/todos/:id', (request, response) => {
   var todoId = request.params.id;
   if( !ObjectID.isValid( todoId )) {
@@ -74,10 +77,6 @@ app.delete( '/todos/:id', (request, response) => {
     }
     response.send( {todo} );
   }).catch ((e) => response.status( 404 ).send());
-});
-
-app.listen( port, () => {
-  console.log( `Started on port ${port}` );
 });
 
 // PATCH /todos/:id
@@ -104,6 +103,10 @@ app.patch( '/todos/:id', (request, response) => {
     }
     response.send( {todo} );
   }).catch( (e) => response.status( 400 ).send());
+});
+
+app.listen( port, () => {
+  console.log( `Started on port ${port}` );
 });
 
 module.exports = {app};
