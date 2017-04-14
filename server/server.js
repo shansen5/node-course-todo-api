@@ -7,11 +7,18 @@ const {config} = require( './config/config.js')
 const {mongoose} = require('./db/mongoose' );
 const {Todo} = require( './models/todo' );
 const {User} = require( './models/user' );
+const {authenticate} = require( './middleware/authenticate' );
 
 const app = express();
 const port = process.env.PORT;
 
 app.use( bodyParser.json());
+
+
+app.get( '/users/me', authenticate, ( request, response ) => {
+  response.send( request.user );
+
+});
 
 // POST /users
 app.post( '/users', (request, response) => {
