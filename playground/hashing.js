@@ -1,15 +1,35 @@
 const {SHA256} = require( 'crypto-js' );
 const jwt = require( 'jsonwebtoken' );
+const bcrypt = require( 'bcrypt' );
 
-var data = {
-    id: 333
-};
-var token = jwt.sign( data, '123abc' );
+var password = 'abc123!';
 
-console.log( token );
+// bcrypt.genSalt( 10, (err, salt) => {
+//     bcrypt.hash( password, salt, (err, hash) => {
+//         console.log( hash );
+//     });
+// });
 
-var decoded = jwt.verify( token, '123abc' );
-console.log( 'decoded', decoded );
+var hashedPwds = [ '$2a$10$vUVwagwSsIuZAUEUHQtyrebsG0ylrQJE8A3Q5B.kXQjKxT4rCKIMS',
+                    '$2a$10$NLe8pD8pCVu6Il2LfqWCROB4WDJ9ghtEFd.6PyT6e1P/zcDwNLR9S',
+                    '$2a$10$QKFa4PqlxmMVBnH79xSkb.x7Orhrt1A2a3ACDefRjmM1oOPAQBIye' ];
+
+hashedPwds.forEach( (hashedPwd) => {
+    bcrypt.compare( password, hashedPwd, (err, result) => {
+        console.log( result );
+    });
+});
+
+
+// var data = {
+//     id: 333
+// };
+// var token = jwt.sign( data, '123abc' );
+
+// console.log( token );
+
+// var decoded = jwt.verify( token, '123abc' );
+// console.log( 'decoded', decoded );
 
 // var message = 'I am message number 345';
 
