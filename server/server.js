@@ -34,6 +34,19 @@ app.post( '/users', (request, response) => {
   });
 });
 
+// POST /users/login {email, password}
+app.post( '/users/login', (request, response) => {
+  var body = _.pick( request.body, ['email', 'password'] );
+  User.findByCredentials( body.email, body.password ).then( (user) => {
+    user.generateAuthToken().then( (token) => {
+      response.header( 'x-auth', token ).send( user );   
+    });
+  
+  }).catch( (e) => {
+    response.status( 400 ).send();
+  });
+});
+
 // POST /todos
 app.post( '/todos', (request, response) => {
   var todo = new Todo({
