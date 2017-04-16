@@ -315,14 +315,14 @@ describe( 'POST /users/login', () => {
         request( app )
         .post( '/users/login' )
         .send( {
-            email: users[0].email, 
-            password: users[0].password
+            email: users[1].email, 
+            password: users[1].password
         } )
         .expect( 200 )
         .expect( (response) => {
             expect( response.headers['x-auth'] ).toExist();
             expect( response.body._id ).toExist();
-            expect( response.body.email ).toBe( users[0].email );
+            expect( response.body.email ).toBe( users[1].email );
             console.log( 'Response: ', response.body.email );
             console.log( 'Response: ', response.headers['x-auth'] );
         }).end( (err, response) => {
@@ -330,7 +330,7 @@ describe( 'POST /users/login', () => {
                 return done( err );
             }
             // User.findOne( {email} ).then( (user) => {
-            User.findById( users[0]._id ).then( (user) => {
+            User.findById( users[1]._id ).then( (user) => {
                 console.log( 'User id:', user._id );
                 console.log( 'User email:', user.email );
                 console.log( 'User: ', JSON.stringify( user.tokens[0] ));
@@ -349,14 +349,14 @@ describe( 'POST /users/login', () => {
 
         request( app )
         .post( '/users/login' )
-        .send( {email: users[0].email, password} )
+        .send( {email: users[1].email, password} )
         .expect( 400 )
         .end( (err, response)  => {
             if ( err ) {
                 return done( err );
             }
             expect( response.headers['x-auth']).toNotExist();
-            User.findById( users[0]._id ).then( (user) => {
+            User.findById( users[1]._id ).then( (user) => {
                 expect( user.tokens.length ).toBe(0);
                 done();
             }).catch( (e) => done( e ));
