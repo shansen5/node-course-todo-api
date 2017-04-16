@@ -344,27 +344,22 @@ describe( 'POST /users/login', () => {
         });
     });
 
-/*
     it( 'should reject invalid login', (done) => {
-        var email = 'shansen5@xxx.com';
-        var password = 'userOnepass';
+        var password = 'userOnepass';  //bad
 
         request( app )
         .post( '/users/login' )
-        .send( {email, password} )
+        .send( {email: users[0].email, password} )
         .expect( 400 )
         .end( (err, response)  => {
             if ( err ) {
                 return done( err );
             }
+            expect( response.headers['x-auth']).toNotExist();
+            User.findById( users[0]._id ).then( (user) => {
+                expect( user.tokens.length ).toBe(0);
+                done();
+            }).catch( (e) => done( e ));
         });
-        User.find().then( (users) => {
-            users.forEach( (user) => {
-                console.log( JSON.stringify( user ) );
-            });
-            expect( users.length ).toBe(2);
-            done();
-        }).catch( (e) => done( e ));
     });
-    */
 });
