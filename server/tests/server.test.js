@@ -216,7 +216,7 @@ describe( 'POST /users', () => {
                 expect( user ).toExist();
                 expect( user.password ).toNotBe( password );
                 done();
-            });
+            }).catch( (e) => done( e ));
         });
     });
 
@@ -261,16 +261,99 @@ describe( 'POST /users', () => {
     });
 
     it ( 'should not create user if email is in use', (done) => {
-        var name = 'Karen';
-        var email = 'karen@yyy.com';
-        var password = 'userTwoPass';
+        var name = 'Joe';
+        var email = 'joe@joe.com';
+        var password = '124abd!';
 
         request( app )
         .post( '/users' )
         .send( {name, email, password} )
+        .expect( 200 )
+        .expect( (response) => {
+            expect( response.headers['x-auth'] ).toExist();
+            expect( response.body._id ).toExist();
+            expect( response.body.name ).toBe( name );
+            expect( response.body.email ).toBe( email );
+        }).end( (err) => {
+            if ( err ) {
+                return done( err );
+            }
+            User.findOne( {email} ).then( (user) => {
+                expect( user ).toExist();
+                expect( user.password ).toNotBe( password );
+                done();
+            });
+        });
+    });
+
+    // it( 'should reject invalid login', (done) => {
+    //     var name = 'Karen';
+    //     var email = 'karen@yy.com';
+    //     var password = 'usertwoPass';
+
+    //     request( app )
+    //     .post( '/users' )
+    //     .send( {name, email, password} )
+    //     .expect( 400 )
+    //     .end( (err, response)  => {
+    //         if ( err ) {
+    //             return done( err );
+    //         }
+    //     });
+    //     User.find().then( (users) => {
+    //         users.forEach( (user) => {
+    //             console.log( JSON.stringify( user ) );
+    //         });
+    //         expect( users.length ).toBe(2);
+    //         done();
+    //     }).catch( (e) => done( e ));
+    // });
+});
+
+describe( 'POST /users/login', () => {
+    it( 'should login user and return auth token', (done) => {
+        request( app )
+        .post( '/users/login' )
+        .send( {
+            email: users[0].email, 
+            password: users[0].password
+        } )
+        .expect( 200 )
+        .expect( (response) => {
+            expect( response.headers['x-auth'] ).toExist();
+            expect( response.body._id ).toExist();
+            expect( response.body.email ).toBe( users[0].email );
+            console.log( 'Response: ', response.body.email );
+            console.log( 'Response: ', response.headers['x-auth'] );
+        }).end( (err, response) => {
+            if ( err ) {
+                return done( err );
+            }
+            // User.findOne( {email} ).then( (user) => {
+            User.findById( users[0]._id ).then( (user) => {
+                console.log( 'User id:', user._id );
+                console.log( 'User email:', user.email );
+                console.log( 'User: ', JSON.stringify( user.tokens[0] ));
+                expect( user ).toExist();
+                expect( user.tokens[0] ).toInclude( {
+                    access: 'auth',
+                    token: response.headers['x-auth']
+                });
+                done();
+            }).catch( (e) => done( e ));
+        });
+    });
+
+/*
+    it( 'should reject invalid login', (done) => {
+        var email = 'shansen5@xxx.com';
+        var password = 'userOnepass';
+
+        request( app )
+        .post( '/users/login' )
+        .send( {email, password} )
         .expect( 400 )
         .end( (err, response)  => {
-            console.log( response );
             if ( err ) {
                 return done( err );
             }
@@ -283,4 +366,5 @@ describe( 'POST /users', () => {
             done();
         }).catch( (e) => done( e ));
     });
-})
+    */
+});

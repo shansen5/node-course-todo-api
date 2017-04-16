@@ -17,7 +17,6 @@ app.use( bodyParser.json());
 
 app.get( '/users/me', authenticate, ( request, response ) => {
   response.send( request.user );
-
 });
 
 // POST /users
@@ -38,10 +37,9 @@ app.post( '/users', (request, response) => {
 app.post( '/users/login', (request, response) => {
   var body = _.pick( request.body, ['email', 'password'] );
   User.findByCredentials( body.email, body.password ).then( (user) => {
-    user.generateAuthToken().then( (token) => {
+    return user.generateAuthToken().then( (token) => {
       response.header( 'x-auth', token ).send( user );   
-    });
-  
+    });  
   }).catch( (e) => {
     response.status( 400 ).send();
   });
