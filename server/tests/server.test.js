@@ -70,7 +70,6 @@ describe( 'GET /todos/:id', () => {
         .get( `/todos/${todos[0]._id.toHexString()}` )
         .expect( 200 )
         .expect( ( response ) => {
-            console.log( 'First todo id:', response.body._id );
             expect( response.body.todo.text ).toBe( todos[0].text );
         })
         .end( done );
@@ -78,7 +77,6 @@ describe( 'GET /todos/:id', () => {
 
     it( 'should return 404 if todo not found', (done) => {
         var testId = new ObjectID().toHexString();
-        console.log( 'testId', testId);
         request( app )
         .get( '/todos/${testId}' )
         .expect( 404 )
@@ -101,7 +99,6 @@ describe( 'PATCH /todos/:id', () => {
         .patch( `/todos/${todoId}` )
         .send( { completed: true })
         .expect( ( response ) => {
-            console.log( 'First todo id:', response.body._id );
             expect( response.body.todo.completed ).toBe( true );
             expect( response.body.todo.completedAt ).toBeA( 'number' );
         })
@@ -116,7 +113,6 @@ describe( 'PATCH /todos/:id', () => {
         .patch( `/todos/${todoId}` )
         .send( { text: newText, completed: false })
         .expect( ( response ) => {
-            console.log( 'Second todo id:', response.body._id );
             expect( response.body.todo.completed ).toBe( false );
             expect( response.body.todo.completedAt ).toBe( null );
             expect( response.body.todo.text ).toBe( newText );
@@ -134,7 +130,6 @@ describe( 'DELETE /todos/:id', () => {
         request( app )
         .delete( `/todos/${todoId}` )
         .expect( ( response ) => {
-            console.log( 'First todo id:', response.body._id );
             expect( response.body.todo._id ).toBe( todoId );
         })
         .expect( 200 )
@@ -151,7 +146,6 @@ describe( 'DELETE /todos/:id', () => {
 
     it( 'should return 404 if todo not found', (done) => {
         var testId = new ObjectID().toHexString();
-        console.log( 'testId', testId);
         request( app )
         .delete( '/todos/${testId}' )
         .expect( 404 )
@@ -285,29 +279,6 @@ describe( 'POST /users', () => {
             });
         });
     });
-
-    // it( 'should reject invalid login', (done) => {
-    //     var name = 'Karen';
-    //     var email = 'karen@yy.com';
-    //     var password = 'usertwoPass';
-
-    //     request( app )
-    //     .post( '/users' )
-    //     .send( {name, email, password} )
-    //     .expect( 400 )
-    //     .end( (err, response)  => {
-    //         if ( err ) {
-    //             return done( err );
-    //         }
-    //     });
-    //     User.find().then( (users) => {
-    //         users.forEach( (user) => {
-    //             console.log( JSON.stringify( user ) );
-    //         });
-    //         expect( users.length ).toBe(2);
-    //         done();
-    //     }).catch( (e) => done( e ));
-    // });
 });
 
 describe( 'POST /users/login', () => {
@@ -323,17 +294,12 @@ describe( 'POST /users/login', () => {
             expect( response.headers['x-auth'] ).toExist();
             expect( response.body._id ).toExist();
             expect( response.body.email ).toBe( users[1].email );
-            console.log( 'Response: ', response.body.email );
-            console.log( 'Response: ', response.headers['x-auth'] );
         }).end( (err, response) => {
             if ( err ) {
                 return done( err );
             }
             // User.findOne( {email} ).then( (user) => {
             User.findById( users[1]._id ).then( (user) => {
-                console.log( 'User id:', user._id );
-                console.log( 'User email:', user.email );
-                console.log( 'User: ', JSON.stringify( user.tokens[0] ));
                 expect( user ).toExist();
                 expect( user.tokens[0] ).toInclude( {
                     access: 'auth',
@@ -362,4 +328,36 @@ describe( 'POST /users/login', () => {
             }).catch( (e) => done( e ));
         });
     });
+});
+
+describe( 'DELETE /users/me/token', () => {
+    it( 'should remove the token', (done) => {
+        var email = 'shansen5@xxx.com';
+        User.findOne( {email} ).then( ( user ) => {
+            var token = user.tokens[0].token;
+            request( app )
+            .delete( '/users/me/token' )
+            .set( 'x-auth', token )     
+            .expect( 200 )
+            .end( (err, res) => {
+                if ( err ) {
+                    return done( err );
+                }
+                User.findOne( {email} ).then( ( user2 ) => {
+                    expect( user2.tokens.length ).toBe(0);
+                    done();
+                });
+            });
+        }).catch( (e) => done( e ));
+    });
+
+    it( 'should return 401 if token not found', (done) => {
+        var token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1OGY0M2ExMzFiMzYzYTIyODgzNjY4MDkiLCJhY2Nlc3MiOiJhdXRoIiwiaWF0IjoxNDkyNDAwNzE0fQ.U1c6IGUtHW4lL5dRe8m6826izZlCfB6yd1-Ovt-M3z8'; 
+        request( app )
+        .delete( '/users/me/token' )
+        .set( 'x-auth', token )     
+        .expect( 401 )
+        .end( done );
+    });
+
 });
