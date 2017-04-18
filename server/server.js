@@ -55,10 +55,11 @@ app.delete( '/users/me/token', authenticate, (request, response) => {
 });
 
 // POST /todos
-app.post( '/todos', (request, response) => {
+app.post( '/todos', authenticate, (request, response) => {
   var todo = new Todo({
     text: request.body.text,
-    completed: request.body.completed
+    completed: request.body.completed,
+    _creator: request.user._id
   });
 
   todo.save().then( (doc) => {
@@ -69,8 +70,8 @@ app.post( '/todos', (request, response) => {
 });
 
 // GET /todos
-app.get( '/todos', (request, response) => {
-  Todo.find().then( (todos) => {
+app.get( '/todos', authenticate, (request, response) => {
+  Todo.find( {_creator: request.user._id}).then( (todos) => {
     response.send( {todos} );
     }, (e) => {
       response.status( 400 ).send( e );
@@ -78,27 +79,32 @@ app.get( '/todos', (request, response) => {
 });
 
 // GET /todos/:id
-app.get( '/todos/:id', (request, response) => {
+app.get( '/todos/:id', authenticate, (request, response) => {
   var todoId = request.params.id;
+  var requesterId = request.user._id;
   if ( !ObjectID.isValid( todoId ) ) {
-    console.log( 'Todo id is not valid' );
     response.status( 404 ).send();
   }
   Todo.findOne( {
-    _id: todoId
+    _id: todoId,
+    _creator: requesterId
   }).then( (todo)  => {
+    if ( !todo ) {
+      return response.status( 404 ).send();
+    }
     response.send( {todo} );
-  }, (e) => response.status( 404 ).send());
+  }).catch( (e) => { response.status( 400 ).send() });
 });
 
 // DELETE /todos/:id
-app.delete( '/todos/:id', (request, response) => {
+app.delete( '/todos/:id', authenticate, (request, response) => {
   var todoId = request.params.id;
   if( !ObjectID.isValid( todoId )) {
     console.log( 'Todo is not valid' );
     response.status( 404 ).send();
   }
-  Todo.findByIdAndRemove( todoId ).then( (todo) => {
+  Todo.findOneAndRemove( {_id: todoId, _creator: request.user._id} )
+    .then( (todo) => {
     if ( !todo ) {
       return response.status( 404 ).send();
     }
@@ -107,7 +113,7 @@ app.delete( '/todos/:id', (request, response) => {
 });
 
 // PATCH /todos/:id
-app.patch( '/todos/:id', (request, response) => {
+app.patch( '/todos/:id', authenticate, (request, response) => {
   console.log( 'Got request to patch');
   var todoId = request.params.id;
   if( !ObjectID.isValid( todoId )) {
@@ -122,7 +128,7 @@ app.patch( '/todos/:id', (request, response) => {
     body.completedAt = null;
   }
 
-  Todo.findByIdAndUpdate( todoId, 
+  Todo.findOneAndUpdate( {_id: todoId, _creator: request.user._id}, 
     { $set: body }, { new: true }).then( (todo) => {
     if( !todo ) {
       console.log( "Cannot find that todo", todoId );
