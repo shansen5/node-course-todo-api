@@ -11,7 +11,7 @@
             "name": "Launch Mocha Tests",
             "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
             "stopOnEntry": false,
-            "args": ["--no-timeouts", "server/tests/server.test.js"]
+            "args": ["--no-timeouts", "server/tests/server2.test.js"]
         },
         {
             "type": "node",
